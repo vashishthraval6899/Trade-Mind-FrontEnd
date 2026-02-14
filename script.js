@@ -17,7 +17,8 @@ const elements = {
   finalSummary: document.getElementById('finalSummary'),
   finalScoreVal: document.getElementById('finalScoreVal'),
   docPulses: document.querySelectorAll('.doc-pulse'),
-  hudTitle: document.querySelector('.hud-title span')
+  hudTitle: document.querySelector('.hud-title span'),
+  researchHud: document.getElementById('researchHud')
 };
 
 // State
@@ -26,85 +27,68 @@ let isLoading = false;
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
+  console.log('✅ Trade-Mind initialized');
 });
 
 // Fetch analysis from API
 async function fetchAnalysis(ticker) {
   try {
-    console.log(`🚀 Fetching analysis for ticker: ${ticker}`);
+    console.log(`🚀 Calling API for ticker: ${ticker}`);
+    console.log(`📡 Endpoint: ${API_BASE_URL}/api/analyze`);
     
-    // Show loading state in cards
-    showLoadingState();
+    const startTime = Date.now();
     
     const response = await fetch(`${API_BASE_URL}/api/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
-      body: JSON.stringify({ ticker: ticker }) // Pass exact ticker name
+      body: JSON.stringify({ ticker: ticker }) // Send exact ticker as string
     });
 
+    const responseTime = Date.now() - startTime;
+    console.log(`⏱️  API response time: ${responseTime}ms`);
+
     if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
     console.log('✅ API Response received:', data);
-    updateUI(data);
+    
+    // Validate response has expected structure
+    if (!data || !data.metrics) {
+      throw new Error('Invalid API response structure');
+    }
+    
+    return data;
     
   } catch (error) {
-    console.error('❌ API fetch failed:', error);
-    // Show error state
-    showErrorState(ticker);
+    console.error('❌ API call failed:', error);
+    throw error;
   }
-}
-
-// Show loading state in cards
-function showLoadingState() {
-  const loadingText = 'Loading analysis...';
-  elements.bullSummary.textContent = loadingText;
-  elements.bearSummary.textContent = loadingText;
-  elements.finalSummary.textContent = loadingText;
-  
-  elements.bullScore.textContent = '--';
-  elements.bearScore.textContent = '--';
-  elements.finalScoreVal.textContent = '--';
-  elements.finalDecision.textContent = '--';
-  elements.confidenceLabel.textContent = '--';
-}
-
-// Show error state
-function showErrorState(ticker) {
-  elements.bullSummary.innerHTML = `❌ Unable to fetch data for ${ticker}. Please try again.`;
-  elements.bearSummary.innerHTML = `❌ Unable to fetch data for ${ticker}. Please try again.`;
-  elements.finalSummary.innerHTML = `❌ Unable to fetch data for ${ticker}. Please try again.`;
-  
-  elements.bullScore.textContent = '--';
-  elements.bearScore.textContent = '--';
-  elements.finalScoreVal.textContent = '--';
-  elements.finalDecision.textContent = 'ERROR';
-  elements.confidenceLabel.textContent = 'Low';
-  
-  elements.newsContainer.innerHTML = '<div class="news-item">❌ Unable to load news</div>';
-  lucide.createIcons();
 }
 
 // Update UI with analysis data
 function updateUI(data) {
+  console.log('🎨 Updating UI with data:', data);
+  
   // Update company ticker in docs section
   if (elements.companyTicker) {
-    elements.companyTicker.textContent = data.ticker || 'TCS';
+    elements.companyTicker.textContent = data.ticker || elements.tickerSelect.value;
   }
 
-  // Update scores
+  // Update scores with animation
   if (elements.bullScore) {
-    elements.bullScore.textContent = data.metrics?.bull_score || '--';
+    elements.bullScore.textContent = data.metrics?.bull_score || '0';
+    elements.bullScore.style.transition = 'all 0.5s ease';
   }
   if (elements.bearScore) {
-    elements.bearScore.textContent = data.metrics?.bear_score || '--';
+    elements.bearScore.textContent = data.metrics?.bear_score || '0';
   }
   if (elements.finalScoreVal) {
-    elements.finalScoreVal.textContent = data.metrics?.final_score || '--';
+    elements.finalScoreVal.textContent = data.metrics?.final_score || '0';
   }
 
   // Update summaries
@@ -121,7 +105,20 @@ function updateUI(data) {
   // Update decision
   if (elements.finalDecision) {
     elements.finalDecision.textContent = data.final_decision || 'HOLD';
+    
+    // Color code the decision
+    if (data.final_decision === 'BUY') {
+      elements.finalDecision.style.background = '#e6f7e6';
+      elements.finalDecision.style.color = '#1b6e46';
+    } else if (data.final_decision === 'SELL') {
+      elements.finalDecision.style.background = '#ffe6e6';
+      elements.finalDecision.style.color = '#b3404c';
+    } else {
+      elements.finalDecision.style.background = '#edf2fc';
+      elements.finalDecision.style.color = '#26344f';
+    }
   }
+  
   if (elements.confidenceLabel) {
     elements.confidenceLabel.textContent = data.confidence || 'Medium';
   }
@@ -129,12 +126,12 @@ function updateUI(data) {
   // Update news
   if (data.recent_news && Array.isArray(data.recent_news)) {
     updateNews(data.recent_news);
-  } else {
-    updateNews([]);
   }
 
   // Re-initialize icons
   lucide.createIcons();
+  
+  console.log('✅ UI update complete');
 }
 
 // Update news section
@@ -148,53 +145,44 @@ function updateNews(newsItems) {
     return;
   }
   
-  newsItems.slice(0, 5).forEach(item => {
-    // Extract clean title (remove HTML tags if any)
+  newsItems.forEach((item, index) => {
+    // Extract clean title
     let cleanTitle = item.title || 'News article';
-    
-    // Remove any HTML tags
-    cleanTitle = cleanTitle.replace(/<[^>]*>/g, '');
-    
-    // Clean up common patterns
-    cleanTitle = cleanTitle
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/\s+/g, ' ')
-      .trim();
+    cleanTitle = cleanTitle.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
     
     // Truncate if too long
-    if (cleanTitle.length > 70) {
-      cleanTitle = cleanTitle.slice(0, 67) + '...';
+    if (cleanTitle.length > 60) {
+      cleanTitle = cleanTitle.slice(0, 57) + '...';
     }
 
     const newsElement = document.createElement('div');
     newsElement.className = 'news-item';
     
-    // Try to extract source and link from summary
-    let source = '';
-    let link = '';
-    
+    // Extract link from summary if available
+    let link = '#';
     if (item.summary) {
-      // Extract link
       const linkMatch = item.summary.match(/href="([^"]*)"/);
       if (linkMatch) {
         link = linkMatch[1];
       }
-      
-      // Extract source
-      const sourceMatch = item.summary.match(/<font[^>]*>(.*?)<\/font>/);
-      if (sourceMatch) {
-        source = sourceMatch[1].replace(/&nbsp;/g, ' ').replace(/<[^>]*>/g, '');
+    }
+    
+    // Format published date if available
+    let dateStr = '';
+    if (item.published) {
+      const date = new Date(item.published);
+      if (!isNaN(date.getTime())) {
+        dateStr = ` · ${date.toLocaleDateString()}`;
       }
     }
     
     newsElement.innerHTML = `
       <i data-lucide="radio"></i>
-      <span>${cleanTitle}${source ? ' · ' + source : ''}</span>
+      <span>${cleanTitle}${dateStr}</span>
     `;
     
-    // Add click handler if there's a link
-    if (link) {
+    // Add click handler
+    if (link !== '#') {
       newsElement.style.cursor = 'pointer';
       newsElement.addEventListener('click', () => {
         window.open(link, '_blank');
@@ -205,13 +193,48 @@ function updateNews(newsItems) {
   });
 }
 
-// Simulate research process
+// Show loading state
+function showLoadingState() {
+  elements.bullSummary.textContent = '🔄 Analyzing bull case...';
+  elements.bearSummary.textContent = '🔄 Analyzing bear case...';
+  elements.finalSummary.textContent = '🔄 Weighing evidence...';
+  
+  elements.bullScore.textContent = '--';
+  elements.bearScore.textContent = '--';
+  elements.finalScoreVal.textContent = '--';
+  elements.finalDecision.textContent = '--';
+  elements.confidenceLabel.textContent = '--';
+}
+
+// Show error state
+function showErrorState(ticker, error) {
+  elements.bullSummary.textContent = `❌ Error analyzing ${ticker}: ${error.message}`;
+  elements.bearSummary.textContent = `❌ Please try again in a few moments`;
+  elements.finalSummary.textContent = `❌ If the problem persists, check console for details`;
+  
+  elements.bullScore.textContent = 'ERR';
+  elements.bearScore.textContent = 'ERR';
+  elements.finalScoreVal.textContent = 'ERR';
+  elements.finalDecision.textContent = 'ERROR';
+  elements.confidenceLabel.textContent = 'Low';
+  
+  elements.newsContainer.innerHTML = '<div class="news-item">❌ Unable to load news</div>';
+  lucide.createIcons();
+}
+
+// Run research and analysis
 async function runResearch(ticker) {
-  if (isLoading) return;
+  if (isLoading) {
+    console.log('⏳ Analysis already in progress');
+    return;
+  }
   
   isLoading = true;
   elements.analyzeBtn.disabled = true;
   elements.loadingSpinner.classList.add('visible');
+  
+  // Show loading state in cards
+  showLoadingState();
   
   // Activate document pulses
   elements.docPulses.forEach(pulse => {
@@ -220,44 +243,63 @@ async function runResearch(ticker) {
 
   // Update HUD title
   if (elements.hudTitle) {
-    elements.hudTitle.textContent = `research stream · analyzing ${ticker}`;
+    elements.hudTitle.textContent = `🔍 researching ${ticker} · querying vector stores`;
   }
 
-  // Simulate document processing
-  const docs = Array.from(elements.docPulses);
-  for (let i = 0; i < docs.length; i++) {
-    docs[i].style.animation = 'softPulse 0.8s infinite';
-    await sleep(80);
+  try {
+    // Simulate some document processing (visual flair)
+    const docs = Array.from(elements.docPulses);
+    for (let i = 0; i < docs.length; i++) {
+      docs[i].style.animation = 'softPulse 0.6s infinite';
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    
+    // Update HUD to show API call
+    if (elements.hudTitle) {
+      elements.hudTitle.textContent = `🌐 calling API for ${ticker} · awaiting response`;
+    }
+    
+    // ACTUAL API CALL
+    const data = await fetchAnalysis(ticker);
+    
+    // Update HUD to show processing
+    if (elements.hudTitle) {
+      elements.hudTitle.textContent = `📊 processing ${ticker} results · updating dashboard`;
+    }
+    
+    // Small delay to show processing state
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Update UI with real data
+    updateUI(data);
+    
+    console.log(`✨ Analysis complete for ${ticker}`);
+    
+  } catch (error) {
+    console.error('❌ Research failed:', error);
+    showErrorState(ticker, error);
+  } finally {
+    // Reset UI state
+    elements.docPulses.forEach(pulse => {
+      pulse.classList.remove('active');
+      pulse.style.animation = '';
+    });
+
+    if (elements.hudTitle) {
+      elements.hudTitle.textContent = 'research stream · live context';
+    }
+
+    elements.loadingSpinner.classList.remove('visible');
+    elements.analyzeBtn.disabled = false;
+    isLoading = false;
   }
-
-  // Fetch actual analysis with EXACT ticker name
-  await fetchAnalysis(ticker);
-
-  // Reset UI state
-  elements.docPulses.forEach(pulse => {
-    pulse.classList.remove('active');
-    pulse.style.animation = '';
-  });
-
-  if (elements.hudTitle) {
-    elements.hudTitle.textContent = 'research stream · live context';
-  }
-
-  elements.loadingSpinner.classList.remove('visible');
-  elements.analyzeBtn.disabled = false;
-  isLoading = false;
-}
-
-// Utility: sleep
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // Event Listeners
-elements.analyzeBtn.addEventListener('click', async () => {
+elements.analyzeBtn.addEventListener('click', () => {
   const selectedTicker = elements.tickerSelect.value;
-  console.log('🔍 Analyze button clicked for ticker:', selectedTicker);
-  await runResearch(selectedTicker);
+  console.log('🎯 Analysis requested for:', selectedTicker);
+  runResearch(selectedTicker);
 });
 
 // Add keyboard shortcut (Enter key)
@@ -267,25 +309,37 @@ elements.tickerSelect.addEventListener('keypress', (e) => {
   }
 });
 
-// Add some CSS for better UX
+// Add CSS for better UX
 const style = document.createElement('style');
 style.textContent = `
   .visible {
     opacity: 1 !important;
   }
   
-  .news-item {
-    transition: all 0.2s ease;
-  }
-  
-  .news-item:hover {
-    background: #e8f0fd;
-    transform: translateX(4px);
-  }
-  
   .doc-pulse.active {
     background: #2a7a4b;
     box-shadow: 0 0 0 2px rgba(42, 122, 75, 0.3);
+    animation: softPulse 1s infinite !important;
+  }
+  
+  .news-item {
+    transition: all 0.2s ease;
+    cursor: default;
+  }
+  
+  .news-item[style*="cursor: pointer"]:hover {
+    background: #e8f0fd;
+    transform: translateX(4px);
+    border-color: #9bb5e0;
+  }
+  
+  #finalDecision {
+    transition: all 0.3s ease;
+  }
+  
+  .score-badge {
+    transition: all 0.5s ease;
   }
 `;
+
 document.head.appendChild(style);
