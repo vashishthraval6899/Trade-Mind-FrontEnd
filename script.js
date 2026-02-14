@@ -1,49 +1,6 @@
 // API configuration
 const API_BASE_URL = 'https://trade-mind-production.up.railway.app';
 
-// Mock data for fallback/development
-const MOCK_RESPONSE = {
-  "ticker": "TCS",
-  "sector": "IT",
-  "metrics": {
-    "bull_score": 85,
-    "bear_score": 72,
-    "final_score": 13
-  },
-  "bull_summary": "TCS demonstrates strong resilience with high ROE (~50%) and margin stability despite wage pressures, signaling robust profitability. The MPC's unchanged repo rate (6.50%) and focus on inflation alignment (4%) while supporting growth provide a stable macroeconomic backdrop for IT services. Global IT spending is projected to grow at a healthy CAGR of 6.9% (CY25E-CY30P), with TCS positioned to benefit from international expansion and AI-driven innovation. Recent sell-offs may reflect short-term market corrections rather than fundamental weakness, offering attractive entry points for long-term investors.",
-  "bear_summary": "The IT/ITeS sector in India, including TCS, faces significant headwinds due to high and persistent inflation (currently at 3.4% CPI but well above RBI's 4% target in H1 2024-25), elevated policy repo rates (6.50% held since mid-2023), and a liquidity-driven slowdown in growth. Rising deposit rates and higher interest costs on small savings schemes squeeze margins, while AI-driven innovation demands escalating R&D investments, straining profitability.",
-  "final_decision": "BUY",
-  "confidence": "Medium",
-  "final_summary": "TCS's strong profitability metrics and leadership in AI-driven IT services support its long-term growth potential. However, sector-specific headwinds introduce near-term risks. The recent sell-offs may offer entry points, but valuation risks justify a Medium confidence BUY decision.",
-  "recent_news": [
-    {
-      "title": "IT stocks selloff continues! Infosys, TCS crash up to 6% - Times of India",
-      "summary": "IT stocks continue to face selling pressure",
-      "published": "2026-02-13 04:44:00+00:00"
-    },
-    {
-      "title": "Infosys, TCS, Wipro tumble up to 5%: Why are IT stocks falling today? - India Today",
-      "summary": "Analysts cite valuation concerns and global uncertainty",
-      "published": "2026-02-12 04:21:12+00:00"
-    },
-    {
-      "title": "TCS, Infosys to Wipro: Should you buy the dip after AI-driven sell-off? - Mint",
-      "summary": "Market experts divided on IT sector valuation",
-      "published": "2026-02-14 10:57:21+00:00"
-    },
-    {
-      "title": "SENSEX falls over 350 points; Infosys, TCS among top drags - Upstox",
-      "summary": "Broad market selloff impacts IT stocks",
-      "published": "2026-02-12 04:04:54+00:00"
-    },
-    {
-      "title": "State Bank Of India Overtakes TCS To Become Fourth Most Valued Company - NDTV",
-      "summary": "SBI market cap surpasses TCS",
-      "published": "2026-02-11 09:07:01+00:00"
-    }
-  ]
-};
-
 // DOM Elements
 const elements = {
   tickerSelect: document.getElementById('tickerSelect'),
@@ -59,7 +16,8 @@ const elements = {
   confidenceLabel: document.getElementById('confidenceLabel'),
   finalSummary: document.getElementById('finalSummary'),
   finalScoreVal: document.getElementById('finalScoreVal'),
-  docPulses: document.querySelectorAll('.doc-pulse')
+  docPulses: document.querySelectorAll('.doc-pulse'),
+  hudTitle: document.querySelector('.hud-title span')
 };
 
 // State
@@ -68,24 +26,22 @@ let isLoading = false;
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
-  loadInitialData();
 });
-
-// Load initial data (TCS)
-async function loadInitialData() {
-  await fetchAnalysis('TCS');
-}
 
 // Fetch analysis from API
 async function fetchAnalysis(ticker) {
   try {
-    // Try to fetch from API
+    console.log(`🚀 Fetching analysis for ticker: ${ticker}`);
+    
+    // Show loading state in cards
+    showLoadingState();
+    
     const response = await fetch(`${API_BASE_URL}/api/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ ticker })
+      body: JSON.stringify({ ticker: ticker }) // Pass exact ticker name
     });
 
     if (!response.ok) {
@@ -93,54 +49,89 @@ async function fetchAnalysis(ticker) {
     }
 
     const data = await response.json();
+    console.log('✅ API Response received:', data);
     updateUI(data);
+    
   } catch (error) {
-    console.warn('API fetch failed, using mock data:', error);
-    // Update ticker in mock data
-    const mockData = { ...MOCK_RESPONSE, ticker };
-    updateUI(mockData);
+    console.error('❌ API fetch failed:', error);
+    // Show error state
+    showErrorState(ticker);
   }
+}
+
+// Show loading state in cards
+function showLoadingState() {
+  const loadingText = 'Loading analysis...';
+  elements.bullSummary.textContent = loadingText;
+  elements.bearSummary.textContent = loadingText;
+  elements.finalSummary.textContent = loadingText;
+  
+  elements.bullScore.textContent = '--';
+  elements.bearScore.textContent = '--';
+  elements.finalScoreVal.textContent = '--';
+  elements.finalDecision.textContent = '--';
+  elements.confidenceLabel.textContent = '--';
+}
+
+// Show error state
+function showErrorState(ticker) {
+  elements.bullSummary.innerHTML = `❌ Unable to fetch data for ${ticker}. Please try again.`;
+  elements.bearSummary.innerHTML = `❌ Unable to fetch data for ${ticker}. Please try again.`;
+  elements.finalSummary.innerHTML = `❌ Unable to fetch data for ${ticker}. Please try again.`;
+  
+  elements.bullScore.textContent = '--';
+  elements.bearScore.textContent = '--';
+  elements.finalScoreVal.textContent = '--';
+  elements.finalDecision.textContent = 'ERROR';
+  elements.confidenceLabel.textContent = 'Low';
+  
+  elements.newsContainer.innerHTML = '<div class="news-item">❌ Unable to load news</div>';
+  lucide.createIcons();
 }
 
 // Update UI with analysis data
 function updateUI(data) {
   // Update company ticker in docs section
   if (elements.companyTicker) {
-    elements.companyTicker.textContent = data.ticker;
+    elements.companyTicker.textContent = data.ticker || 'TCS';
   }
 
   // Update scores
   if (elements.bullScore) {
-    elements.bullScore.textContent = data.metrics.bull_score;
+    elements.bullScore.textContent = data.metrics?.bull_score || '--';
   }
   if (elements.bearScore) {
-    elements.bearScore.textContent = data.metrics.bear_score;
+    elements.bearScore.textContent = data.metrics?.bear_score || '--';
   }
   if (elements.finalScoreVal) {
-    elements.finalScoreVal.textContent = data.metrics.final_score;
+    elements.finalScoreVal.textContent = data.metrics?.final_score || '--';
   }
 
   // Update summaries
   if (elements.bullSummary) {
-    elements.bullSummary.textContent = data.bull_summary;
+    elements.bullSummary.textContent = data.bull_summary || 'No bull summary available';
   }
   if (elements.bearSummary) {
-    elements.bearSummary.textContent = data.bear_summary;
+    elements.bearSummary.textContent = data.bear_summary || 'No bear summary available';
   }
   if (elements.finalSummary) {
-    elements.finalSummary.textContent = data.final_summary;
+    elements.finalSummary.textContent = data.final_summary || 'No final summary available';
   }
 
   // Update decision
   if (elements.finalDecision) {
-    elements.finalDecision.textContent = data.final_decision;
+    elements.finalDecision.textContent = data.final_decision || 'HOLD';
   }
   if (elements.confidenceLabel) {
-    elements.confidenceLabel.textContent = data.confidence;
+    elements.confidenceLabel.textContent = data.confidence || 'Medium';
   }
 
   // Update news
-  updateNews(data.recent_news);
+  if (data.recent_news && Array.isArray(data.recent_news)) {
+    updateNews(data.recent_news);
+  } else {
+    updateNews([]);
+  }
 
   // Re-initialize icons
   lucide.createIcons();
@@ -152,28 +143,61 @@ function updateNews(newsItems) {
 
   elements.newsContainer.innerHTML = '';
   
+  if (!newsItems || newsItems.length === 0) {
+    elements.newsContainer.innerHTML = '<div class="news-item">No recent news available</div>';
+    return;
+  }
+  
   newsItems.slice(0, 5).forEach(item => {
-    // Clean up title
-    let cleanTitle = item.title;
-    if (cleanTitle.includes(' - ')) {
-      cleanTitle = cleanTitle.split(' - ')[0];
-    }
-    if (cleanTitle.length > 50) {
-      cleanTitle = cleanTitle.slice(0, 47) + '...';
+    // Extract clean title (remove HTML tags if any)
+    let cleanTitle = item.title || 'News article';
+    
+    // Remove any HTML tags
+    cleanTitle = cleanTitle.replace(/<[^>]*>/g, '');
+    
+    // Clean up common patterns
+    cleanTitle = cleanTitle
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    // Truncate if too long
+    if (cleanTitle.length > 70) {
+      cleanTitle = cleanTitle.slice(0, 67) + '...';
     }
 
     const newsElement = document.createElement('div');
     newsElement.className = 'news-item';
+    
+    // Try to extract source and link from summary
+    let source = '';
+    let link = '';
+    
+    if (item.summary) {
+      // Extract link
+      const linkMatch = item.summary.match(/href="([^"]*)"/);
+      if (linkMatch) {
+        link = linkMatch[1];
+      }
+      
+      // Extract source
+      const sourceMatch = item.summary.match(/<font[^>]*>(.*?)<\/font>/);
+      if (sourceMatch) {
+        source = sourceMatch[1].replace(/&nbsp;/g, ' ').replace(/<[^>]*>/g, '');
+      }
+    }
+    
     newsElement.innerHTML = `
       <i data-lucide="radio"></i>
-      <span>${cleanTitle}</span>
+      <span>${cleanTitle}${source ? ' · ' + source : ''}</span>
     `;
     
-    // Add click handler to open news (if URL available)
-    if (item.url) {
+    // Add click handler if there's a link
+    if (link) {
       newsElement.style.cursor = 'pointer';
       newsElement.addEventListener('click', () => {
-        window.open(item.url, '_blank');
+        window.open(link, '_blank');
       });
     }
     
@@ -195,19 +219,18 @@ async function runResearch(ticker) {
   });
 
   // Update HUD title
-  const hudTitle = document.querySelector('.hud-title span');
-  if (hudTitle) {
-    hudTitle.textContent = `research stream · analyzing ${ticker}`;
+  if (elements.hudTitle) {
+    elements.hudTitle.textContent = `research stream · analyzing ${ticker}`;
   }
 
-  // Simulate document processing in sequence
+  // Simulate document processing
   const docs = Array.from(elements.docPulses);
   for (let i = 0; i < docs.length; i++) {
     docs[i].style.animation = 'softPulse 0.8s infinite';
-    await sleep(150); // Quick sequential activation
+    await sleep(80);
   }
 
-  // Fetch actual analysis
+  // Fetch actual analysis with EXACT ticker name
   await fetchAnalysis(ticker);
 
   // Reset UI state
@@ -216,8 +239,8 @@ async function runResearch(ticker) {
     pulse.style.animation = '';
   });
 
-  if (hudTitle) {
-    hudTitle.textContent = 'research stream · live context';
+  if (elements.hudTitle) {
+    elements.hudTitle.textContent = 'research stream · live context';
   }
 
   elements.loadingSpinner.classList.remove('visible');
@@ -233,17 +256,36 @@ function sleep(ms) {
 // Event Listeners
 elements.analyzeBtn.addEventListener('click', async () => {
   const selectedTicker = elements.tickerSelect.value;
+  console.log('🔍 Analyze button clicked for ticker:', selectedTicker);
   await runResearch(selectedTicker);
 });
 
-// Optional: Add keyboard shortcut (Enter key)
+// Add keyboard shortcut (Enter key)
 elements.tickerSelect.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     elements.analyzeBtn.click();
   }
 });
 
-// Export for testing (if needed)
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { fetchAnalysis, updateUI, runResearch };
-}
+// Add some CSS for better UX
+const style = document.createElement('style');
+style.textContent = `
+  .visible {
+    opacity: 1 !important;
+  }
+  
+  .news-item {
+    transition: all 0.2s ease;
+  }
+  
+  .news-item:hover {
+    background: #e8f0fd;
+    transform: translateX(4px);
+  }
+  
+  .doc-pulse.active {
+    background: #2a7a4b;
+    box-shadow: 0 0 0 2px rgba(42, 122, 75, 0.3);
+  }
+`;
+document.head.appendChild(style);
