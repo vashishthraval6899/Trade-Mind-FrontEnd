@@ -1,345 +1,167 @@
-// API configuration
-const API_BASE_URL = 'https://trade-mind-production.up.railway.app';
+const API_URL = "https://trade-mind-production.up.railway.app";
+let selectedTicker = null;
 
 // DOM Elements
-const elements = {
-  tickerSelect: document.getElementById('tickerSelect'),
-  analyzeBtn: document.getElementById('analyzeBtn'),
-  loadingSpinner: document.getElementById('loadingSpinner'),
-  companyTicker: document.getElementById('companyTicker'),
-  newsContainer: document.getElementById('newsContainer'),
-  bullScore: document.getElementById('bullScore'),
-  bearScore: document.getElementById('bearScore'),
-  bullSummary: document.getElementById('bullSummary'),
-  bearSummary: document.getElementById('bearSummary'),
-  finalDecision: document.getElementById('finalDecision'),
-  confidenceLabel: document.getElementById('confidenceLabel'),
-  finalSummary: document.getElementById('finalSummary'),
-  finalScoreVal: document.getElementById('finalScoreVal'),
-  docPulses: document.querySelectorAll('.doc-pulse'),
-  hudTitle: document.querySelector('.hud-title span'),
-  researchHud: document.getElementById('researchHud')
-};
+const tickerCards = document.querySelectorAll('.ticker-card');
+const analyzeBtn = document.getElementById('analyze-btn');
+const terminalSection = document.getElementById('terminal-view');
+const logsContainer = document.getElementById('logs-container');
+const progressFill = document.getElementById('progress-fill');
+const newsSection = document.getElementById('news-section');
+const newsContainer = document.getElementById('news-container');
+const discussionPanel = document.getElementById('discussion-panel');
 
-// State
-let isLoading = false;
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  lucide.createIcons();
-  console.log('✅ Trade-Mind initialized');
+// State Manager for Ticker Selection
+tickerCards.forEach(card => {
+    card.addEventListener('click', () => {
+        // Remove active class from all
+        tickerCards.forEach(c => c.classList.remove('selected'));
+        // Add to clicked
+        card.classList.add('selected');
+        selectedTicker = card.dataset.ticker;
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerText = `INITIATE PROTOCOL: ${selectedTicker}`;
+    });
 });
 
-// Fetch analysis from API
-async function fetchAnalysis(ticker) {
-  try {
-    console.log(`🚀 Calling API for ticker: ${ticker}`);
-    console.log(`📡 Endpoint: ${API_BASE_URL}/api/analyze`);
+// Main Analysis Flow
+analyzeBtn.addEventListener('click', async () => {
+    if (!selectedTicker) return;
+
+    // 1. Reset Interface
+    resetInterface();
     
-    const startTime = Date.now();
+    // 2. Start Terminal Simulation
+    terminalSection.classList.remove('hidden');
     
-    const response = await fetch(`${API_BASE_URL}/api/analyze`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ ticker: ticker }) // Send exact ticker as string
+    try {
+        // Add logs sequentially to simulate complex research
+        await addLog(`[SYSTEM] Initializing Trade-Mind Protocol for ${selectedTicker}...`, 'info', 0);
+        await addLog(`[MACRO] Fetching: Indian Union Budget 2026-27 Data...`, 'process', 800);
+        await addLog(`[MACRO] Analyzing: RBI Monetary Policy Committee Minutes 2025...`, 'process', 1500);
+        await addLog(`[MACRO] Cross-referencing: US FOMC Meeting Minutes...`, 'process', 2200);
+        await addLog(`[SECTOR] Loading: BCG Indian Banking Sector Report 2025...`, 'info', 3000);
+        await addLog(`[SECTOR] Loading: CareEdge Indian IT Sector Report 2025...`, 'info', 3500);
+        await addLog(`[COMPANY] Vector Search: ${selectedTicker} Annual Report (FY25)...`, 'process', 4500);
+        await addLog(`[COMPANY] Parsing: Last 2 Quarterly Earnings Calls...`, 'process', 5500);
+        await addLog(`[NEWS] Google News API: Fetching real-time sentiment...`, 'process', 6500);
+
+        // 3. Actually Call the API
+        // Note: In a real app, you might start this earlier. 
+        // Here we wait for the "show" to finish mostly, or run in parallel.
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticker: selectedTicker })
+        });
+
+        if (!response.ok) throw new Error("API Connection Failed");
+
+        const data = await response.json();
+        
+        await addLog(`[SYSTEM] Data Aggregation Complete. Generating Alpha...`, 'success', 7000);
+        updateProgressBar(100);
+
+        // 4. Render Results after a brief delay
+        setTimeout(() => {
+            renderResults(data);
+        }, 1000);
+
+    } catch (error) {
+        addLog(`[ERROR] System Failure: ${error.message}`, 'error', 0);
+    }
+});
+
+// Helper: Add Log Entry
+function addLog(message, type, delay) {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            const div = document.createElement('div');
+            div.className = `log-entry ${type}`;
+            div.innerText = `> ${message}`;
+            logsContainer.appendChild(div);
+            logsContainer.scrollTop = logsContainer.scrollHeight; // Auto scroll
+            
+            // Update progress bar roughly based on flow
+            const currentProgress = parseInt(progressFill.style.width || 0);
+            if (currentProgress < 90) updateProgressBar(currentProgress + 10);
+            
+            resolve();
+        }, delay);
     });
-
-    const responseTime = Date.now() - startTime;
-    console.log(`⏱️  API response time: ${responseTime}ms`);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ API Response received:', data);
-    
-    // Validate response has expected structure
-    if (!data || !data.metrics) {
-      throw new Error('Invalid API response structure');
-    }
-    
-    return data;
-    
-  } catch (error) {
-    console.error('❌ API call failed:', error);
-    throw error;
-  }
 }
 
-// Update UI with analysis data
-function updateUI(data) {
-  console.log('🎨 Updating UI with data:', data);
-  
-  // Update company ticker in docs section
-  if (elements.companyTicker) {
-    elements.companyTicker.textContent = data.ticker || elements.tickerSelect.value;
-  }
+function updateProgressBar(percent) {
+    progressFill.style.width = `${percent}%`;
+}
 
-  // Update scores with animation
-  if (elements.bullScore) {
-    elements.bullScore.textContent = data.metrics?.bull_score || '0';
-    elements.bullScore.style.transition = 'all 0.5s ease';
-  }
-  if (elements.bearScore) {
-    elements.bearScore.textContent = data.metrics?.bear_score || '0';
-  }
-  if (elements.finalScoreVal) {
-    elements.finalScoreVal.textContent = data.metrics?.final_score || '0';
-  }
+function resetInterface() {
+    logsContainer.innerHTML = '';
+    progressFill.style.width = '0%';
+    newsSection.classList.add('hidden');
+    discussionPanel.classList.add('hidden');
+    // Clear previous results text
+    document.getElementById('bull-summary-text').innerHTML = '';
+    document.getElementById('bear-summary-text').innerHTML = '';
+}
 
-  // Update summaries
-  if (elements.bullSummary) {
-    elements.bullSummary.textContent = data.bull_summary || 'No bull summary available';
-  }
-  if (elements.bearSummary) {
-    elements.bearSummary.textContent = data.bear_summary || 'No bear summary available';
-  }
-  if (elements.finalSummary) {
-    elements.finalSummary.textContent = data.final_summary || 'No final summary available';
-  }
+function renderResults(data) {
+    // 1. Show News
+    newsContainer.innerHTML = '';
+    if (data.recent_news && data.recent_news.length > 0) {
+        data.recent_news.slice(0, 4).forEach(news => {
+            // Check if summary is raw HTML or text. The API sends raw HTML in summary.
+            // We'll strip tags for a cleaner look or use a snippet.
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = news.summary; 
+            const textContent = tempDiv.textContent || tempDiv.innerText || "";
+            const cleanSnippet = textContent.length > 100 ? textContent.substring(0, 100) + "..." : textContent;
 
-  // Update decision
-  if (elements.finalDecision) {
-    elements.finalDecision.textContent = data.final_decision || 'HOLD';
-    
-    // Color code the decision
-    if (data.final_decision === 'BUY') {
-      elements.finalDecision.style.background = '#e6f7e6';
-      elements.finalDecision.style.color = '#1b6e46';
-    } else if (data.final_decision === 'SELL') {
-      elements.finalDecision.style.background = '#ffe6e6';
-      elements.finalDecision.style.color = '#b3404c';
+            // Extract link from the summary HTML string provided by API
+            const match = news.summary.match(/href="([^"]*)"/);
+            const link = match ? match[1] : "#";
+
+            const card = document.createElement('div');
+            card.className = 'news-item';
+            card.innerHTML = `
+                <div style="font-weight:bold; margin-bottom:5px;">${news.title}</div>
+                <div style="color:#aaa; margin-bottom:10px;">${cleanSnippet}</div>
+                <a href="${link}" target="_blank">Read Source <i class="fa-solid fa-external-link-alt"></i></a>
+            `;
+            newsContainer.appendChild(card);
+        });
+        newsSection.classList.remove('hidden');
+    }
+
+    // 2. Populate Analysis
+    document.getElementById('bull-score-display').innerText = `Score: ${data.metrics.bull_score}`;
+    document.getElementById('bull-summary-text').innerText = data.bull_summary;
+
+    document.getElementById('bear-score-display').innerText = `Score: ${data.metrics.bear_score}`;
+    document.getElementById('bear-summary-text').innerText = data.bear_summary;
+
+    document.getElementById('final-decision-display').innerText = data.final_decision;
+    document.getElementById('final-score-display').innerText = `Score: ${data.metrics.final_score}`;
+    document.getElementById('judge-summary-text').innerText = data.final_summary;
+    document.getElementById('confidence-display').innerText = data.confidence;
+
+    // Stylize the decision badge color
+    const decision = data.final_decision.toUpperCase();
+    const badge = document.getElementById('final-decision-display');
+    if(decision === 'BUY') {
+        badge.style.color = 'var(--bull)';
+        badge.style.border = '1px solid var(--bull)';
+    } else if (decision === 'SELL') {
+        badge.style.color = 'var(--bear)';
+        badge.style.border = '1px solid var(--bear)';
     } else {
-      elements.finalDecision.style.background = '#edf2fc';
-      elements.finalDecision.style.color = '#26344f';
+        badge.style.color = 'var(--gold)';
+        badge.style.border = '1px solid var(--gold)';
     }
-  }
-  
-  if (elements.confidenceLabel) {
-    elements.confidenceLabel.textContent = data.confidence || 'Medium';
-  }
 
-  // Update news
-  if (data.recent_news && Array.isArray(data.recent_news)) {
-    updateNews(data.recent_news);
-  }
+    // 3. Reveal Discussion Panel
+    discussionPanel.classList.remove('hidden');
 
-  // Re-initialize icons
-  lucide.createIcons();
-  
-  console.log('✅ UI update complete');
+    // Scroll to results
+    discussionPanel.scrollIntoView({ behavior: 'smooth' });
 }
-
-// Update news section
-function updateNews(newsItems) {
-  if (!elements.newsContainer) return;
-
-  elements.newsContainer.innerHTML = '';
-  
-  if (!newsItems || newsItems.length === 0) {
-    elements.newsContainer.innerHTML = '<div class="news-item">No recent news available</div>';
-    return;
-  }
-  
-  newsItems.forEach((item, index) => {
-    // Extract clean title
-    let cleanTitle = item.title || 'News article';
-    cleanTitle = cleanTitle.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
-    
-    // Truncate if too long
-    if (cleanTitle.length > 60) {
-      cleanTitle = cleanTitle.slice(0, 57) + '...';
-    }
-
-    const newsElement = document.createElement('div');
-    newsElement.className = 'news-item';
-    
-    // Extract link from summary if available
-    let link = '#';
-    if (item.summary) {
-      const linkMatch = item.summary.match(/href="([^"]*)"/);
-      if (linkMatch) {
-        link = linkMatch[1];
-      }
-    }
-    
-    // Format published date if available
-    let dateStr = '';
-    if (item.published) {
-      const date = new Date(item.published);
-      if (!isNaN(date.getTime())) {
-        dateStr = ` · ${date.toLocaleDateString()}`;
-      }
-    }
-    
-    newsElement.innerHTML = `
-      <i data-lucide="radio"></i>
-      <span>${cleanTitle}${dateStr}</span>
-    `;
-    
-    // Add click handler
-    if (link !== '#') {
-      newsElement.style.cursor = 'pointer';
-      newsElement.addEventListener('click', () => {
-        window.open(link, '_blank');
-      });
-    }
-    
-    elements.newsContainer.appendChild(newsElement);
-  });
-}
-
-// Show loading state
-function showLoadingState() {
-  elements.bullSummary.textContent = '🔄 Analyzing bull case...';
-  elements.bearSummary.textContent = '🔄 Analyzing bear case...';
-  elements.finalSummary.textContent = '🔄 Weighing evidence...';
-  
-  elements.bullScore.textContent = '--';
-  elements.bearScore.textContent = '--';
-  elements.finalScoreVal.textContent = '--';
-  elements.finalDecision.textContent = '--';
-  elements.confidenceLabel.textContent = '--';
-}
-
-// Show error state
-function showErrorState(ticker, error) {
-  elements.bullSummary.textContent = `❌ Error analyzing ${ticker}: ${error.message}`;
-  elements.bearSummary.textContent = `❌ Please try again in a few moments`;
-  elements.finalSummary.textContent = `❌ If the problem persists, check console for details`;
-  
-  elements.bullScore.textContent = 'ERR';
-  elements.bearScore.textContent = 'ERR';
-  elements.finalScoreVal.textContent = 'ERR';
-  elements.finalDecision.textContent = 'ERROR';
-  elements.confidenceLabel.textContent = 'Low';
-  
-  elements.newsContainer.innerHTML = '<div class="news-item">❌ Unable to load news</div>';
-  lucide.createIcons();
-}
-
-// Run research and analysis
-async function runResearch(ticker) {
-  if (isLoading) {
-    console.log('⏳ Analysis already in progress');
-    return;
-  }
-  
-  isLoading = true;
-  elements.analyzeBtn.disabled = true;
-  elements.loadingSpinner.classList.add('visible');
-  
-  // Show loading state in cards
-  showLoadingState();
-  
-  // Activate document pulses
-  elements.docPulses.forEach(pulse => {
-    pulse.classList.add('active');
-  });
-
-  // Update HUD title
-  if (elements.hudTitle) {
-    elements.hudTitle.textContent = `🔍 researching ${ticker} · querying vector stores`;
-  }
-
-  try {
-    // Simulate some document processing (visual flair)
-    const docs = Array.from(elements.docPulses);
-    for (let i = 0; i < docs.length; i++) {
-      docs[i].style.animation = 'softPulse 0.6s infinite';
-      await new Promise(resolve => setTimeout(resolve, 50));
-    }
-    
-    // Update HUD to show API call
-    if (elements.hudTitle) {
-      elements.hudTitle.textContent = `🌐 calling API for ${ticker} · awaiting response`;
-    }
-    
-    // ACTUAL API CALL
-    const data = await fetchAnalysis(ticker);
-    
-    // Update HUD to show processing
-    if (elements.hudTitle) {
-      elements.hudTitle.textContent = `📊 processing ${ticker} results · updating dashboard`;
-    }
-    
-    // Small delay to show processing state
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Update UI with real data
-    updateUI(data);
-    
-    console.log(`✨ Analysis complete for ${ticker}`);
-    
-  } catch (error) {
-    console.error('❌ Research failed:', error);
-    showErrorState(ticker, error);
-  } finally {
-    // Reset UI state
-    elements.docPulses.forEach(pulse => {
-      pulse.classList.remove('active');
-      pulse.style.animation = '';
-    });
-
-    if (elements.hudTitle) {
-      elements.hudTitle.textContent = 'research stream · live context';
-    }
-
-    elements.loadingSpinner.classList.remove('visible');
-    elements.analyzeBtn.disabled = false;
-    isLoading = false;
-  }
-}
-
-// Event Listeners
-elements.analyzeBtn.addEventListener('click', () => {
-  const selectedTicker = elements.tickerSelect.value;
-  console.log('🎯 Analysis requested for:', selectedTicker);
-  runResearch(selectedTicker);
-});
-
-// Add keyboard shortcut (Enter key)
-elements.tickerSelect.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
-    elements.analyzeBtn.click();
-  }
-});
-
-// Add CSS for better UX
-const style = document.createElement('style');
-style.textContent = `
-  .visible {
-    opacity: 1 !important;
-  }
-  
-  .doc-pulse.active {
-    background: #2a7a4b;
-    box-shadow: 0 0 0 2px rgba(42, 122, 75, 0.3);
-    animation: softPulse 1s infinite !important;
-  }
-  
-  .news-item {
-    transition: all 0.2s ease;
-    cursor: default;
-  }
-  
-  .news-item[style*="cursor: pointer"]:hover {
-    background: #e8f0fd;
-    transform: translateX(4px);
-    border-color: #9bb5e0;
-  }
-  
-  #finalDecision {
-    transition: all 0.3s ease;
-  }
-  
-  .score-badge {
-    transition: all 0.5s ease;
-  }
-`;
-
-document.head.appendChild(style);
