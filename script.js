@@ -3,7 +3,7 @@
 // --- CONFIGURATION ---
 const API_URL = "https://trade-mind-production.up.railway.app";
 // SET THIS TO TRUE TO BYPASS THE ERROR AND SEE THE UI WORKING
-const USE_MOCK_DATA = true; 
+const USE_MOCK_DATA = false; 
 
 let selectedTicker = null;
 
