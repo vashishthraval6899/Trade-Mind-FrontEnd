@@ -1,141 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trade-Mind · personal hedge fund</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade-Mind | AI Hedge Fund</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <!-- TITLE with credit -->
-    <div class="project-title">
-      ⚡ Trade-Mind <span>: your personal hedge fund</span>
+
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <h1>Trade-Mind <span class="badge">PRO</span></h1>
+                <p class="subtitle">Your Personal Hedge Fund Team</p>
+            </div>
+            <div class="author">
+                <p>Project by <span class="highlight">Vashishth Raval</span></p>
+            </div>
+        </header>
+
+        <section class="selection-panel">
+            <h3>Select Asset for Analysis</h3>
+            <div class="ticker-grid">
+                <div class="ticker-card" data-ticker="HDFCBANK">
+                    <div class="icon-placeholder">HDFC</div>
+                    <span>HDFCBANK</span>
+                </div>
+                <div class="ticker-card" data-ticker="SBIN">
+                    <div class="icon-placeholder">SBI</div>
+                    <span>SBIN</span>
+                </div>
+                <div class="ticker-card" data-ticker="ICICIBANK">
+                    <div class="icon-placeholder">ICICI</div>
+                    <span>ICICIBANK</span>
+                </div>
+                <div class="ticker-card" data-ticker="TCS">
+                    <div class="icon-placeholder">TCS</div>
+                    <span>TCS</span>
+                </div>
+                <div class="ticker-card" data-ticker="INFY">
+                    <div class="icon-placeholder">INFY</div>
+                    <span>INFY</span>
+                </div>
+                <div class="ticker-card" data-ticker="HCLTECH">
+                    <div class="icon-placeholder">HCL</div>
+                    <span>HCLTECH</span>
+                </div>
+            </div>
+
+            <button id="analyze-btn" class="glow-on-hover" disabled>
+                INITIATE QUANT PROTOCOL
+            </button>
+        </section>
+
+        <section id="terminal-view" class="hidden">
+            <div class="terminal-header">
+                <span class="blink">●</span> LIVE SYSTEM LOGS
+            </div>
+            <div class="terminal-window" id="logs-container">
+                </div>
+            <div class="loader-bar">
+                <div class="fill" id="progress-fill"></div>
+            </div>
+        </section>
+
+        <section id="news-section" class="hidden">
+            <div class="news-header">
+                <i class="fa-solid fa-newspaper"></i> REAL-TIME INTELLIGENCE
+            </div>
+            <div class="news-grid" id="news-container">
+                </div>
+        </section>
+
+        <section id="discussion-panel" class="hidden">
+            
+            <div class="analyst-card bull-card slide-in-left">
+                <div class="analyst-avatar">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                </div>
+                <div class="analyst-content">
+                    <div class="analyst-header">
+                        <h4>Senior Bull Analyst</h4>
+                        <span class="score-badge bull-score" id="bull-score-display">Score: --</span>
+                    </div>
+                    <div class="analyst-body" id="bull-summary-text">
+                        </div>
+                </div>
+            </div>
+
+            <div class="analyst-card bear-card slide-in-right">
+                <div class="analyst-avatar">
+                    <i class="fa-solid fa-arrow-trend-down"></i>
+                </div>
+                <div class="analyst-content">
+                    <div class="analyst-header">
+                        <h4>Senior Bear Analyst</h4>
+                        <span class="score-badge bear-score" id="bear-score-display">Score: --</span>
+                    </div>
+                    <div class="analyst-body" id="bear-summary-text">
+                        </div>
+                </div>
+            </div>
+
+            <div class="analyst-card judge-card fade-in-up">
+                <div class="analyst-avatar">
+                    <i class="fa-solid fa-gavel"></i>
+                </div>
+                <div class="analyst-content">
+                    <div class="analyst-header">
+                        <h4>Chief Investment Officer (Verdict)</h4>
+                        <div class="verdict-badges">
+                            <span class="decision-badge" id="final-decision-display">--</span>
+                            <span class="score-badge final-score" id="final-score-display">Score: --</span>
+                        </div>
+                    </div>
+                    <div class="analyst-body">
+                        <p id="judge-summary-text"></p>
+                        <div class="confidence-meter">
+                            <span>Confidence: <strong id="confidence-display">--</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
     </div>
-    <div class="sub-credit">A Project by Vashishth Raval · minimalist research console</div>
 
-    <!-- 6 company icons strip -->
-    <div class="ticker-strip">
-      <div class="ticker-icon"><i data-lucide="landmark"></i> HDFCBANK</div>
-      <div class="ticker-icon"><i data-lucide="building"></i> SBIN</div>
-      <div class="ticker-icon"><i data-lucide="banknote"></i> ICICIBANK</div>
-      <div class="ticker-icon"><i data-lucide="cpu"></i> TCS</div>
-      <div class="ticker-icon"><i data-lucide="hard-drive"></i> INFY</div>
-      <div class="ticker-icon"><i data-lucide="server"></i> HCLTECH</div>
-    </div>
-
-    <!-- selector + cool button -->
-    <div class="query-panel">
-      <div class="select-wrapper">
-        <i data-lucide="search"></i>
-        <select id="tickerSelect">
-          <option value="TCS" selected>TCS · Tata Consultancy Services</option>
-          <option value="HDFCBANK">HDFCBANK · Housing Development Finance</option>
-          <option value="SBIN">SBIN · State Bank of India</option>
-          <option value="ICICIBANK">ICICIBANK · ICICI Bank</option>
-          <option value="INFY">INFY · Infosys</option>
-          <option value="HCLTECH">HCLTECH · HCL Technologies</option>
-        </select>
-      </div>
-      <button class="cool-btn" id="analyzeBtn">
-        <i data-lucide="sparkles"></i> ignite insight
-      </button>
-    </div>
-
-    <!-- RESEARCH HUD: behind the scenes / docs being used + live news -->
-    <div class="research-hud" id="researchHud">
-      <div class="hud-title">
-        <i data-lucide="scan-eye"></i>
-        <span>research stream · live context</span>
-        <div class="spinner-mini" id="loadingSpinner"></div>
-      </div>
-
-      <!-- macro / sector / company reports -->
-      <div class="docs-grid">
-        <div class="doc-category">
-          <h4>📋 MACRO</h4>
-          <div class="doc-list">
-            <div class="doc-item"><i data-lucide="file-text"></i> Union Budget 2026-27 <span class="doc-pulse" data-doc="budget"></span></div>
-            <div class="doc-item"><i data-lucide="file-text"></i> RBI Policy 2025 <span class="doc-pulse" data-doc="rbi"></span></div>
-            <div class="doc-item"><i data-lucide="file-text"></i> FOMC Minutes <span class="doc-pulse" data-doc="fomc"></span></div>
-            <div class="doc-item"><i data-lucide="file-text"></i> FinStab Report 2025 <span class="doc-pulse" data-doc="finstab"></span></div>
-          </div>
-        </div>
-        <div class="doc-category">
-          <h4>🏭 SECTOR</h4>
-          <div class="doc-list">
-            <div class="doc-item"><i data-lucide="file-bar-chart"></i> BCG Banking Report 2025 <span class="doc-pulse" data-doc="bcg"></span></div>
-            <div class="doc-item"><i data-lucide="file-bar-chart"></i> CareEdge IT Report 2025 <span class="doc-pulse" data-doc="careedge"></span></div>
-          </div>
-        </div>
-        <div class="doc-category" id="companyDocs">
-          <h4>📄 COMPANY (<span id="companyTicker">TCS</span>)</h4>
-          <div class="doc-list">
-            <div class="doc-item"><i data-lucide="file-text"></i> Annual Report 2025 <span class="doc-pulse" data-doc="annual"></span></div>
-            <div class="doc-item"><i data-lucide="file-text"></i> Q2 FY26 report <span class="doc-pulse" data-doc="q2"></span></div>
-            <div class="doc-item"><i data-lucide="file-text"></i> Q3 FY26 report <span class="doc-pulse" data-doc="q3"></span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- realtime fetched news -->
-      <div class="news-preview">
-        <div class="news-header">
-          <i data-lucide="newspaper"></i> <span>google news · realtime top stories</span>
-        </div>
-        <div class="news-ticker" id="newsContainer">
-          <div class="news-item">Click "ignite insight" to fetch latest news</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- BULL / BEAR / JUDGE output cards -->
-    <div class="result-grid" id="resultSection">
-      <!-- BULL CARD -->
-      <div class="insight-card">
-        <div class="card-header">
-          <i data-lucide="trending-up" class="bull-icon"></i>
-          <span class="score-badge bull-score" id="bullScore">--</span>
-        </div>
-        <div class="summary-text" id="bullSummary">
-          Select a company and click "ignite insight" to analyze
-        </div>
-      </div>
-      <!-- BEAR CARD -->
-      <div class="insight-card">
-        <div class="card-header">
-          <i data-lucide="trending-down" class="bear-icon"></i>
-          <span class="score-badge bear-score" id="bearScore">--</span>
-        </div>
-        <div class="summary-text" id="bearSummary">
-          Select a company and click "ignite insight" to analyze
-        </div>
-      </div>
-      <!-- JUDGE CARD -->
-      <div class="insight-card">
-        <div class="card-header">
-          <i data-lucide="scale" class="judge-icon"></i>
-          <span style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-            <span class="final-tag" id="finalDecision">--</span>
-            <span class="confidence" id="confidenceLabel">--</span>
-          </span>
-        </div>
-        <div class="summary-text" id="finalSummary">
-          Select a company and click "ignite insight" to analyze
-        </div>
-      </div>
-    </div>
-
-    <!-- footer -->
-    <div class="footer-note">
-      final score: <span id="finalScoreVal">--</span> · analysis based on vector reports + live news · data @trade-mind
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
