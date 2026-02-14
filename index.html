@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trade-Mind · personal hedge fund</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <!-- TITLE with credit -->
+    <div class="project-title">
+      ⚡ Trade-Mind <span>: your personal hedge fund</span>
+    </div>
+    <div class="sub-credit">A Project by Vashishth Raval · minimalist research console</div>
+
+    <!-- 6 company icons strip -->
+    <div class="ticker-strip">
+      <div class="ticker-icon"><i data-lucide="landmark"></i> HDFCBANK</div>
+      <div class="ticker-icon"><i data-lucide="building"></i> SBIN</div>
+      <div class="ticker-icon"><i data-lucide="banknote"></i> ICICIBANK</div>
+      <div class="ticker-icon"><i data-lucide="cpu"></i> TCS</div>
+      <div class="ticker-icon"><i data-lucide="hard-drive"></i> INFY</div>
+      <div class="ticker-icon"><i data-lucide="server"></i> HCLTECH</div>
+    </div>
+
+    <!-- selector + cool button -->
+    <div class="query-panel">
+      <div class="select-wrapper">
+        <i data-lucide="search"></i>
+        <select id="tickerSelect">
+          <option value="TCS" selected>TCS · Tata Consultancy Services</option>
+          <option value="HDFCBANK">HDFCBANK · Housing Development Finance</option>
+          <option value="SBIN">SBIN · State Bank of India</option>
+          <option value="ICICIBANK">ICICIBANK · ICICI Bank</option>
+          <option value="INFY">INFY · Infosys</option>
+          <option value="HCLTECH">HCLTECH · HCL Technologies</option>
+        </select>
+      </div>
+      <button class="cool-btn" id="analyzeBtn">
+        <i data-lucide="sparkles"></i> ignite insight
+      </button>
+    </div>
+
+    <!-- RESEARCH HUD: behind the scenes / docs being used + live news -->
+    <div class="research-hud" id="researchHud">
+      <div class="hud-title">
+        <i data-lucide="scan-eye"></i>
+        <span>research stream · live context</span>
+        <div class="spinner-mini" id="loadingSpinner"></div>
+      </div>
+
+      <!-- macro / sector / company reports -->
+      <div class="docs-grid">
+        <div class="doc-category">
+          <h4>📋 MACRO</h4>
+          <div class="doc-list">
+            <div class="doc-item"><i data-lucide="file-text"></i> Union Budget 2026-27 <span class="doc-pulse" data-doc="budget"></span></div>
+            <div class="doc-item"><i data-lucide="file-text"></i> RBI Policy 2025 <span class="doc-pulse" data-doc="rbi"></span></div>
+            <div class="doc-item"><i data-lucide="file-text"></i> FOMC Minutes <span class="doc-pulse" data-doc="fomc"></span></div>
+            <div class="doc-item"><i data-lucide="file-text"></i> FinStab Report 2025 <span class="doc-pulse" data-doc="finstab"></span></div>
+          </div>
+        </div>
+        <div class="doc-category">
+          <h4>🏭 SECTOR</h4>
+          <div class="doc-list">
+            <div class="doc-item"><i data-lucide="file-bar-chart"></i> BCG Banking Report 2025 <span class="doc-pulse" data-doc="bcg"></span></div>
+            <div class="doc-item"><i data-lucide="file-bar-chart"></i> CareEdge IT Report 2025 <span class="doc-pulse" data-doc="careedge"></span></div>
+          </div>
+        </div>
+        <div class="doc-category" id="companyDocs">
+          <h4>📄 COMPANY (<span id="companyTicker">TCS</span>)</h4>
+          <div class="doc-list">
+            <div class="doc-item"><i data-lucide="file-text"></i> Annual Report 2025 <span class="doc-pulse" data-doc="annual"></span></div>
+            <div class="doc-item"><i data-lucide="file-text"></i> Q2 FY26 report <span class="doc-pulse" data-doc="q2"></span></div>
+            <div class="doc-item"><i data-lucide="file-text"></i> Q3 FY26 report <span class="doc-pulse" data-doc="q3"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- realtime fetched news -->
+      <div class="news-preview">
+        <div class="news-header">
+          <i data-lucide="newspaper"></i> <span>google news · realtime top stories</span>
+        </div>
+        <div class="news-ticker" id="newsContainer">
+          <!-- dynamically filled -->
+        </div>
+      </div>
+    </div>
+
+    <!-- BULL / BEAR / JUDGE output cards -->
+    <div class="result-grid" id="resultSection">
+      <!-- BULL CARD -->
+      <div class="insight-card">
+        <div class="card-header">
+          <i data-lucide="trending-up" class="bull-icon"></i>
+          <span class="score-badge bull-score" id="bullScore">85</span>
+        </div>
+        <div class="summary-text" id="bullSummary">
+          Loading bull analysis...
+        </div>
+      </div>
+      <!-- BEAR CARD -->
+      <div class="insight-card">
+        <div class="card-header">
+          <i data-lucide="trending-down" class="bear-icon"></i>
+          <span class="score-badge bear-score" id="bearScore">72</span>
+        </div>
+        <div class="summary-text" id="bearSummary">
+          Loading bear analysis...
+        </div>
+      </div>
+      <!-- JUDGE CARD -->
+      <div class="insight-card">
+        <div class="card-header">
+          <i data-lucide="scale" class="judge-icon"></i>
+          <span style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <span class="final-tag" id="finalDecision">BUY</span>
+            <span class="confidence" id="confidenceLabel">Medium</span>
+          </span>
+        </div>
+        <div class="summary-text" id="finalSummary">
+          Loading final analysis...
+        </div>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <div class="footer-note">
+      final score: <span id="finalScoreVal">13</span> · analysis based on vector reports + live news · data @trade-mind
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
