@@ -24,7 +24,8 @@ tickerCards.forEach(card => {
         card.classList.add('selected');
         selectedTicker = card.dataset.ticker;
         analyzeBtn.disabled = false;
-        analyzeBtn.innerText = `INITIATE PROTOCOL: ${selectedTicker}`;
+        // UPDATED BUTTON TEXT LOGIC
+        analyzeBtn.innerHTML = `RUN ANALYSIS: <span style="color:#fff">${selectedTicker}</span>`;
     });
 });
 
@@ -38,7 +39,7 @@ analyzeBtn.addEventListener('click', async () => {
     
     try {
         // --- STEP 1: VISUAL SIMULATION (The "Cool" Part) ---
-        await addLog(`[SYSTEM] Initializing Trade-Mind Protocol for ${selectedTicker}...`, 'info', 0);
+        await addLog(`[SYSTEM] Initializing Investment Committee for ${selectedTicker}...`, 'info', 0);
         await addLog(`[MACRO] Fetching: Indian Union Budget 2026-27 Data...`, 'process', 800);
         await addLog(`[MACRO] Analyzing: RBI Monetary Policy Committee Minutes 2025...`, 'process', 1500);
         await addLog(`[SECTOR] Loading: CareEdge Indian IT Sector Report 2025...`, 'info', 2500);
@@ -64,7 +65,7 @@ analyzeBtn.addEventListener('click', async () => {
         }
 
         await addLog(`[NEWS] Google News API: Sentiment Analysis Complete...`, 'process', 5000);
-        await addLog(`[SYSTEM] Data Aggregation Complete. Generating Alpha...`, 'success', 6000);
+        await addLog(`[SYSTEM] Consensus Reached. Generating Investment Thesis...`, 'success', 6000);
         updateProgressBar(100);
 
         // --- STEP 3: SHOW RESULTS ---
@@ -173,7 +174,7 @@ function renderResults(data) {
     discussionPanel.scrollIntoView({ behavior: 'smooth' });
 }
 
-// --- MOCK DATA STORE ---
+// --- MOCK DATA STORE (Same as before) ---
 function getMockData() {
     return {
         "ticker": "TCS",
