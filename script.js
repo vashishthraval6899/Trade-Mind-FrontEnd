@@ -24,7 +24,6 @@ tickerCards.forEach(card => {
         card.classList.add('selected');
         selectedTicker = card.dataset.ticker;
         analyzeBtn.disabled = false;
-        // UPDATED BUTTON TEXT LOGIC
         analyzeBtn.innerHTML = `RUN ANALYSIS: <span style="color:#fff">${selectedTicker}</span>`;
     });
 });
@@ -38,21 +37,20 @@ analyzeBtn.addEventListener('click', async () => {
     terminalSection.classList.remove('hidden');
     
     try {
-        // --- STEP 1: VISUAL SIMULATION (The "Cool" Part) ---
+        // --- STEP 1: VISUAL SIMULATION ---
         await addLog(`[SYSTEM] Initializing Investment Committee for ${selectedTicker}...`, 'info', 0);
         await addLog(`[MACRO] Fetching: Indian Union Budget 2026-27 Data...`, 'process', 800);
         await addLog(`[MACRO] Analyzing: RBI Monetary Policy Committee Minutes 2025...`, 'process', 1500);
         await addLog(`[SECTOR] Loading: CareEdge Indian IT Sector Report 2025...`, 'info', 2500);
         await addLog(`[COMPANY] Vector Search: ${selectedTicker} Annual Report (FY25)...`, 'process', 3500);
         
-        // --- STEP 2: FETCH DATA (Real or Mock) ---
+        // --- STEP 2: FETCH DATA ---
         let data;
         
         if (USE_MOCK_DATA) {
             await addLog(`[DEBUG] CORS Bypass Active: Loading Simulation Data...`, 'warning', 4000);
-            // Simulate network delay for effect
             await new Promise(r => setTimeout(r, 1000)); 
-            data = getMockData(); // Load the hardcoded data
+            data = getMockData(); 
         } else {
             // Real API Call
             const response = await fetch(API_URL, {
@@ -89,7 +87,6 @@ function addLog(message, type, delay) {
             logsContainer.appendChild(div);
             logsContainer.scrollTop = logsContainer.scrollHeight;
             
-            // Increment progress bar based on logs
             const currentProgress = parseInt(progressFill.style.width || 0);
             if (currentProgress < 90) updateProgressBar(currentProgress + 15);
             
@@ -118,13 +115,11 @@ function renderResults(data) {
     newsContainer.innerHTML = '';
     if (data.recent_news && data.recent_news.length > 0) {
         data.recent_news.slice(0, 4).forEach(news => {
-            // Clean up the summary HTML if needed
             const tempDiv = document.createElement("div");
             tempDiv.innerHTML = news.summary;
             let cleanText = tempDiv.textContent || tempDiv.innerText || "";
             if(cleanText.length > 120) cleanText = cleanText.substring(0, 120) + "...";
 
-            // Extract link safely
             const match = news.summary.match(/href="([^"]*)"/);
             const link = match ? match[1] : "#";
 
@@ -155,9 +150,9 @@ function renderResults(data) {
     document.getElementById('judge-summary-text').innerText = data.final_summary;
     document.getElementById('confidence-display').innerText = data.confidence;
 
-    // 3. Color Coding for Verdict
+    // 3. Color Coding
     const decision = data.final_decision.toUpperCase();
-    judgeBadge.className = 'decision-badge'; // reset
+    judgeBadge.className = 'decision-badge'; 
     if (decision.includes('BUY')) {
         judgeBadge.style.background = 'var(--bull)';
         judgeBadge.style.color = '#000';
@@ -169,12 +164,11 @@ function renderResults(data) {
         judgeBadge.style.color = '#000';
     }
 
-    // 4. Reveal Animation
+    // 4. Reveal
     discussionPanel.classList.remove('hidden');
     discussionPanel.scrollIntoView({ behavior: 'smooth' });
 }
 
-// --- MOCK DATA STORE (Same as before) ---
 function getMockData() {
     return {
         "ticker": "TCS",
@@ -184,24 +178,14 @@ function getMockData() {
             "bear_score": 72,
             "final_score": 13
         },
-        "bull_summary": "TCS demonstrates strong resilience with high ROE (~50%) and margin stability despite wage pressures, signaling robust profitability. The MPC’s unchanged repo rate (6.50%) and focus on inflation alignment (4%) while supporting growth provide a stable macroeconomic backdrop for IT services. Global IT spending is projected to grow at a healthy CAGR of 6.9% (CY25E-CY30P), with TCS positioned to benefit from international expansion and AI-driven innovation. Recent sell-offs may reflect short-term market corrections rather than fundamental weakness, offering attractive entry points for long-term investors.",
-        "bear_summary": "The IT/ITeS sector in India, including TCS, faces significant headwinds due to high and persistent inflation (currently at 3.4% CPI but well above RBI’s 4% target in H1 2024-25), elevated policy repo rates (6.50% held since mid-2023), and a liquidity-driven slowdown in growth. Rising deposit rates and higher interest costs on small savings schemes squeeze margins, while AI-driven innovation demands escalating R&D investments, straining profitability. Recent stock selloffs reflect broader market concerns, including economic uncertainty and potential demand shocks.",
+        "bull_summary": "TCS demonstrates strong resilience with high ROE (~50%) and margin stability despite wage pressures. The MPC’s unchanged repo rate (6.50%) provides a stable macroeconomic backdrop.",
+        "bear_summary": "The IT/ITeS sector faces headwinds due to high inflation and elevated policy repo rates. Rising deposit rates squeeze margins, while AI-driven innovation demands escalating R&D investments.",
         "final_decision": "BUY",
         "confidence": "Medium",
-        "final_summary": "TCS’s strong profitability metrics (e.g., ROE ~50%) and leadership in AI-driven IT services, combined with a stable macroeconomic backdrop (MPC’s repo rate at 6.50% with inflation aligning toward 4%), support its long-term growth potential. However, sector-specific headwinds—such as margin pressure from rising wage and interest costs, economic uncertainty, and competition—introduce near-term risks that warrant cautious optimism.",
+        "final_summary": "TCS’s strong profitability metrics and leadership in AI-driven IT services support long-term growth. However, sector-specific headwinds introduce near-term risks.",
         "recent_news": [
-            {
-                "title": "IT stocks selloff continues! Infosys, TCS crash up to 6%",
-                "summary": "IT stocks selloff continues! Infosys, TCS crash up to 6% - what’s driving the massive rout. Rising deposit rates and higher interest costs on small savings schemes are squeezing margins."
-            },
-            {
-                "title": "State Bank Of India Overtakes TCS To Become Fourth Most Valued",
-                "summary": "State Bank Of India Overtakes TCS To Become Fourth Most Valued Company In India - NDTV Profit. This signals a relative underperformance in valuation compared to banking peers."
-            },
-            {
-                "title": "Should you buy the dip after AI-driven sell-off?",
-                "summary": "TCS, Infosys to Wipro: Should you buy the dip after AI-driven sell-off? Experts suggest recent corrections might offer an attractive entry point for long-term holders."
-            }
+            { "title": "IT stocks selloff continues! Infosys, TCS crash up to 6%", "summary": "IT stocks selloff continues! Infosys, TCS crash up to 6%." },
+            { "title": "State Bank Of India Overtakes TCS", "summary": "State Bank Of India Overtakes TCS To Become Fourth Most Valued Company In India." }
         ]
     };
 }
