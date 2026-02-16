@@ -10,20 +10,31 @@
 </head>
 <body>
 
+    <div class="bg-grid"></div>
+
     <div class="container">
         <header>
             <div class="logo-area">
-                <h1>TradeMind <span class="badge">PRO</span></h1>
-                <p class="subtitle-main">Your Personal Hedge Fund Team.</p>
-                <p class="subtitle-tech">A RAG-Based Multi-Agent Financial Intelligence System.</p>
+                <div class="logo-wrapper">
+                    <h1>TradeMind <span class="badge">PRO</span></h1>
+                </div>
+                
+                <div class="hero-text">
+                    <p class="subtitle-main">Your Personal Hedge Fund Team.</p>
+                    <div class="tech-pill-container">
+                        <span class="tech-pill">
+                            <i class="fa-solid fa-microchip"></i> RAG-Based Multi-Agent System
+                        </span>
+                    </div>
+                </div>
             </div>
             <div class="author">
-                <p>Project by <span class="highlight">Vashishth Raval</span></p>
+                <p>Architected by <span class="highlight">Vashishth Raval</span></p>
             </div>
         </header>
 
         <section class="selection-panel">
-            <h3>Select Asset for Analysis</h3>
+            <h3><i class="fa-solid fa-magnifying-glass-chart"></i> Select Asset for Analysis</h3>
             <div class="ticker-grid">
                 <div class="ticker-card" data-ticker="HDFCBANK">
                     <div class="icon-placeholder">HDFC</div>
@@ -52,7 +63,7 @@
             </div>
 
             <button id="analyze-btn" class="glow-on-hover" disabled>
-                INITIATE QUANT PROTOCOL
+                LAUNCH INVESTMENT COMMITTEE
             </button>
         </section>
 
@@ -69,7 +80,7 @@
 
         <section id="news-section" class="hidden">
             <div class="news-header">
-                <i class="fa-solid fa-newspaper"></i> REAL-TIME INTELLIGENCE
+                <i class="fa-solid fa-globe"></i> REAL-TIME MARKET INTELLIGENCE
             </div>
             <div class="news-grid" id="news-container">
             </div>
