@@ -24,18 +24,3 @@ A minimalist, elegant research console for stock analysis, built by Vashishth Ra
 ### One-Click Deploy
 
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/yourusername/trade-mind)
-
-### Manual Deployment
-
-1. Clone this repository
-2. Push to your GitHub/GitLab account
-3. Connect to Netlify:
-   - Log in to [Netlify](https://app.netlify.com)
-   - Click "New site from Git"
-   - Select your repository
-   - Build settings will auto-populate from `netlify.toml`
-   - Click "Deploy site"
-
-### Environment Variables
-
-No environment variables required for frontend-only deployment. API calls go to:
