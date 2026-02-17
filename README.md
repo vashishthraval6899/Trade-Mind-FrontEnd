@@ -21,6 +21,4 @@ A minimalist, elegant research console for stock analysis, built by Vashishth Ra
 
 ## Deployment on Netlify
 
-### One-Click Deploy
-
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/yourusername/trade-mind)
